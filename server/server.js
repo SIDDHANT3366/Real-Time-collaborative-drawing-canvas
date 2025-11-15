@@ -9,13 +9,23 @@ const PORT = process.env.PORT || 8080;
 
 // Serve static files
 const server = createServer((req, res) => {
-    const basePath = join(__dirname, '../client');
-    let filePath = req.url === '/' ? 
-        join(basePath, 'index.html') : 
-        join(basePath, req.url);
+    let filePath;
+    const basePath = join(__dirname, '..', 'client');
     
-    // Security: Prevent directory traversal
-    filePath = join(basePath, req.url.replace(/\.\./g, ''));
+    // Route requests to appropriate files
+    if (req.url === '/' || req.url === '/index.html') {
+        filePath = join(basePath, 'index.html');
+    } else if (req.url === '/style.css') {
+        filePath = join(basePath, 'style.css');
+    } else if (req.url === '/app.js') {
+        filePath = join(basePath, 'app.js');
+    } else if (req.url === '/canvas.js') {
+        filePath = join(basePath, 'canvas.js');
+    } else {
+        res.writeHead(404);
+        res.end('Not found');
+        return;
+    }
     
     try {
         const content = readFileSync(filePath);
@@ -23,17 +33,10 @@ const server = createServer((req, res) => {
         const contentType = {
             'html': 'text/html',
             'css': 'text/css',
-            'js': 'application/javascript',
-            'ico': 'image/x-icon',
-            'png': 'image/png',
-            'jpg': 'image/jpeg',
-            'svg': 'image/svg+xml'
+            'js': 'application/javascript'
         }[ext] || 'text/plain';
         
-        res.writeHead(200, { 
-            'Content-Type': contentType,
-            'Cache-Control': 'public, max-age=3600'
-        });
+        res.writeHead(200, { 'Content-Type': contentType });
         res.end(content);
     } catch (error) {
         console.log('File not found:', filePath);
@@ -42,7 +45,7 @@ const server = createServer((req, res) => {
     }
 });
 
-// WebSocket server
+// WebSocket server for real-time collaboration
 const wss = new WebSocketServer({ server });
 const connections = new Map();
 const canvasStates = [];
@@ -64,7 +67,7 @@ wss.on('connection', (ws) => {
         userId: userId
     });
     
-    // Send welcome
+    // Send welcome message to new user
     ws.send(JSON.stringify({
         type: 'welcome',
         userId: userId,
@@ -93,7 +96,7 @@ wss.on('connection', (ws) => {
         }));
     }
     
-    // Notify about new user
+    // Notify all users about new connection
     broadcastToAll({
         type: 'user-joined',
         userId: userId,
@@ -101,13 +104,14 @@ wss.on('connection', (ws) => {
         name: userName
     });
     
-    // Handle messages
+    // Handle incoming messages
     ws.on('message', (data) => {
         try {
             const message = JSON.parse(data);
             
             switch (message.type) {
                 case 'draw-end':
+                    // Save canvas state after drawing completes
                     if (message.userId === userId) {
                         broadcastToAll({
                             type: 'save-state',
@@ -117,6 +121,7 @@ wss.on('connection', (ws) => {
                     break;
                     
                 case 'undo':
+                    // Handle undo action
                     if (currentStateIndex > 0) {
                         currentStateIndex--;
                         broadcastToAll({
@@ -135,6 +140,7 @@ wss.on('connection', (ws) => {
                     break;
                     
                 case 'redo':
+                    // Handle redo action
                     if (currentStateIndex < canvasStates.length - 1) {
                         currentStateIndex++;
                         broadcastToAll({
@@ -146,6 +152,7 @@ wss.on('connection', (ws) => {
                     break;
                     
                 case 'clear':
+                    // Clear canvas and history
                     currentStateIndex = -1;
                     canvasStates.length = 0;
                     broadcastToAll({
@@ -155,6 +162,7 @@ wss.on('connection', (ws) => {
                     break;
                     
                 case 'save-state':
+                    // Save current canvas state
                     if (message.stateData) {
                         if (currentStateIndex < canvasStates.length - 1) {
                             canvasStates.splice(currentStateIndex + 1);
@@ -166,6 +174,7 @@ wss.on('connection', (ws) => {
                     
                 case 'draw-start':
                 case 'draw-move':
+                    // Broadcast drawing actions with actual color
                     broadcastToAll({
                         ...message,
                         userId: userId
@@ -173,6 +182,7 @@ wss.on('connection', (ws) => {
                     break;
                     
                 default:
+                    // Broadcast other messages with user color
                     broadcastToAll({
                         ...message,
                         userId: userId,
@@ -185,6 +195,7 @@ wss.on('connection', (ws) => {
         }
     });
     
+    // Handle user disconnect
     ws.on('close', () => {
         console.log(`❌ User ${userId} disconnected`);
         connections.delete(userId);
@@ -194,11 +205,13 @@ wss.on('connection', (ws) => {
         });
     });
     
+    // Handle WebSocket errors
     ws.on('error', (error) => {
         console.error('💥 WebSocket error for user', userId, error);
     });
 });
 
+// Broadcast message to all connected users
 function broadcastToAll(message, excludeUserId = null) {
     let sentCount = 0;
     connections.forEach((user, userId) => {
@@ -209,20 +222,23 @@ function broadcastToAll(message, excludeUserId = null) {
     });
 }
 
+// Generate random color for new users
 function getRandomColor() {
     const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
     return colors[Math.floor(Math.random() * colors.length)];
 }
 
-// Clean up old canvas states
+// Clean up old canvas states to prevent memory issues
 setInterval(() => {
     if (canvasStates.length > 50) {
         const statesToRemove = canvasStates.length - 50;
         canvasStates.splice(0, statesToRemove);
         currentStateIndex -= statesToRemove;
+        console.log(`🧹 Cleaned up ${statesToRemove} old canvas states`);
     }
 }, 60000);
 
+// Start the server
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Collaborative Canvas running on port ${PORT}`);
     console.log(`🌐 WebSocket server: ws://localhost:${PORT}`);
