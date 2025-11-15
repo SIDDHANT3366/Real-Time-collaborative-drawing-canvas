@@ -1,0 +1,146 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Toolbar */
+.toolbar {
+    background: white;
+    padding: 1rem;
+    border-bottom: 2px solid #ddd;
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.tool-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tool-btn {
+    padding: 0.5rem 1rem;
+    border: 2px solid #ddd;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.tool-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.tool-btn:hover {
+    background: #f8f9fa;
+}
+
+.tool-btn.active:hover {
+    background: #0056b3;
+}
+
+#color-picker {
+    width: 50px;
+    height: 40px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#size-slider {
+    width: 80px;
+}
+
+.actions {
+    margin-left: auto;
+}
+
+.actions button {
+    padding: 0.5rem 1rem;
+    border: 2px solid #ddd;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.actions button:hover {
+    background: #f8f9fa;
+}
+
+.users {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Canvas */
+.canvas-container {
+    flex: 1;
+    position: relative;
+    background: white;
+    overflow: hidden;
+}
+
+#drawing-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+}
+
+.remote-cursor {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid white;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Status */
+.status {
+    background: white;
+    padding: 0.5rem 1rem;
+    border-top: 2px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.hint {
+    color: #666;
+    font-style: italic;
+}
+
+.connected { color: green; }
+.disconnected { color: red; }

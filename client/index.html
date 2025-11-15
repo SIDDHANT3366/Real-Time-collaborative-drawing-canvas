@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Canvas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="tool-group">
+                <button id="brush-btn" class="tool-btn active">✏️ Brush</button>
+                <button id="eraser-btn" class="tool-btn">🧽 Eraser</button>
+            </div>
+            
+            <div class="tool-group">
+                <input type="color" id="color-picker" value="#000000">
+                <label>Color</label>
+            </div>
+            
+            <div class="tool-group">
+                <label>Size:</label>
+                <input type="range" id="size-slider" min="1" max="20" value="3">
+                <span id="size-value">3</span>
+            </div>
+            
+            <div class="tool-group actions">
+                <button id="undo-btn" title="Undo">↶ Undo</button>
+                <button id="redo-btn" title="Redo">↷ Redo</button>
+                <button id="clear-btn" title="Clear">🗑️ Clear</button>
+                <button id="download-btn" title="Download">💾 Save</button>
+            </div>
+            
+            <div class="tool-group users">
+                <span id="users-count">1 user</span>
+                <div id="users-list"></div>
+            </div>
+        </div>
+
+        <!-- Canvas Area -->
+        <div class="canvas-container">
+            <canvas id="drawing-canvas"></canvas>
+            <div id="cursors"></div>
+        </div>
+
+        <!-- Status -->
+        <div class="status">
+            <span id="status">Connecting...</span>
+            <span class="hint">💡 Open multiple browser tabs to test collaboration!</span>
+        </div>
+    </div>
+
+    <script src="canvas.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
